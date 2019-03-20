@@ -20,26 +20,10 @@ io.sockets.on('connection', function(socket) {
     socket.emit('log', array);
   }
 
-  socket.on('message', function(message,clientAnwerId,clientOfferId) {
+  socket.on('message', function(message) {
     log('客户端说    : ', message);
-     var anwerId
-     var offerId 
     // for a real app, would be room-only (not broadcast)
-    // socket.broadcast.emit('message', message);
-    // socket.emit('message', message);
-      anwerId = anwerId || clientAnwerId
-      offerId = offerId || clientOfferId
-    if (message.type == "offer") {
-      message.offerId = offerId
-    };
-    log('---- anwerId:'+anwerId+"---offerId:"+offerId+" ------ message.type: "+message.type)
-    if (anwerId) {
-        log(" 有传入id")
-          socket.to(anwerId).emit('message', message);
-    }else{
-        log(" 没有传入id")
-        socket.broadcast.emit('message', message);
-    }
+    socket.broadcast.emit('message', message);
   });
 
   socket.on('create or join', function(room) {
@@ -52,18 +36,13 @@ io.sockets.on('connection', function(socket) {
     if (numClients === 0) {
       socket.join(room);
       log('客户 ID ' + socket.id + ' 创建房间 ' + room);
-      socket.emit('created', socket.id);
+      socket.emit('created', room, socket.id);
 
     } else if (numClients < 10) {
-      // log('客户 ID ' + socket.id + ' 进入房间 ' + room);
-      // io.sockets.in(room).emit('join',socket.id);  //除了新加入的人，其他人能收到信息
-      // socket.join(room);
-      // socket.emit('joined room', room, socket.id); //只能自己看到
-      // io.sockets.in(room).emit('ready'); 
-       log('客户 ID ' + socket.id + ' 进入房间 ' + room);
-      io.sockets.in(room).emit('join', socket.id);
+      log('客户 ID ' + socket.id + ' 进入房间 ' + room);
+      io.sockets.in(room).emit('join', room);
       socket.join(room);
-      socket.emit('joined',room,socket.id,numClients);
+      socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready');
     } else { // max two clients
       socket.emit('full', room);
